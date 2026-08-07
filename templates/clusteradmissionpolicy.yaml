@@ -1,0 +1,17 @@
+apiVersion: policies.kubewarden.io/v1
+kind: ClusterAdmissionPolicy
+metadata:
+  name: cerit-unique-ingress
+spec:
+  policyServer: default
+#  module: registry://ghcr.io/kubewarden/policies/unique-ingress-policy:latest
+  module:
+  contextAwareResources:
+    - apiVersion: "networking.k8s.io/v1"
+      kind: "Ingress"
+  rules:
+    - apiGroups: ["networking.k8s.io"]
+      apiVersions: ["v1"]
+      resources: ["ingresses"]
+      operations: ["CREATE", "UPDATE"]
+  mutating: false
