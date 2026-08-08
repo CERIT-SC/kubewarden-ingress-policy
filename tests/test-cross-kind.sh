@@ -188,12 +188,12 @@ run_httproute_test "hr-ing-same-host-diff-path" ing app.example.com / app.exampl
 echo
 echo "=== HTTPRoute vs Gateway tests ==="
 # --- reject cases ---
-run_httproute_test "hr-gw-conflict" gw app.example.com app.example.com / deny
-run_httproute_test "hr-gw-wildcard-overlap" gw '*.example.com' app.example.com / deny
+run_httproute_test "hr-gw-conflict" gw app.example.com / app.example.com / deny
+run_httproute_test "hr-gw-wildcard-overlap" gw '*.example.com' / app.example.com / deny
 
 # --- allow cases ---
-run_httproute_test "hr-gw-diff-host" gw app.example.com other.example.com / allow
-run_httproute_test "hr-gw-wildcard-host" gw '*.example.com' example.com / allow
+run_httproute_test "hr-gw-diff-host" gw app.example.com / other.example.com / allow
+run_httproute_test "hr-gw-wildcard-host" gw '*.example.com' / example.com / allow
 
 echo
 echo "=== PASS: $PASS  FAIL: $FAIL ==="
