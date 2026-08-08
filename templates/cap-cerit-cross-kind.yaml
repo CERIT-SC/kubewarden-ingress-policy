@@ -1,7 +1,7 @@
 apiVersion: policies.kubewarden.io/v1
 kind: ClusterAdmissionPolicy
 metadata:
-  name: cerit-multi-gateway
+  name: cerit-cross-kind
 spec:
   policyServer: default
   module: registry://registry.example.com/namespace/multi-gateway-host:latest
