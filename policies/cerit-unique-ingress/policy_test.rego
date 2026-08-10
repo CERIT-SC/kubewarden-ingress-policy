@@ -21,7 +21,7 @@ review_same_host = {"review": {
 	},
 }}
 
-test_same_host_rejected if {
+test_same_host_rejected {
 	r = review_same_host
 	res = violation with input as r with data.inventory as inventory
 	count(res) == 1
@@ -41,7 +41,7 @@ review_wildcard_same = {"review": {
 	},
 }}
 
-test_wildcard_same_rejected if {
+test_wildcard_same_rejected {
 	r = review_wildcard_same
 	res = violation with input as r with data.inventory as inventory_wildcard
 	count(res) == 1
@@ -56,7 +56,7 @@ review_wildcard_overlap = {"review": {
 	},
 }}
 
-test_wildcard_overlap_rejected if {
+test_wildcard_overlap_rejected {
 	r = review_wildcard_overlap
 	res = violation with input as r with data.inventory as inventory
 	count(res) == 1
@@ -76,7 +76,7 @@ review_wildcard_sub = {"review": {
 	},
 }}
 
-test_wildcard_sub_rejected if {
+test_wildcard_sub_rejected {
 	r = review_wildcard_sub
 	res = violation with input as r with data.inventory as inventory_wildcard_sub
 	count(res) == 1
@@ -96,7 +96,7 @@ review_wildcard_host = {"review": {
 	},
 }}
 
-test_wildcard_host_allowed if {
+test_wildcard_host_allowed {
 	r = review_wildcard_host
 	res = violation with input as r with data.inventory as inventory_wildcard
 	count(res) == 0
@@ -116,7 +116,7 @@ review_wildcard_diff = {"review": {
 	},
 }}
 
-test_wildcard_diff_allowed if {
+test_wildcard_diff_allowed {
 	r = review_wildcard_diff
 	res = violation with input as r with data.inventory as inventory_wildcard_diff
 	count(res) == 0
@@ -131,7 +131,7 @@ review_same_host_diff_path = {"review": {
 	},
 }}
 
-test_same_host_diff_path_allowed if {
+test_same_host_diff_path_allowed {
 	r = review_same_host_diff_path
 	res = violation with input as r with data.inventory as inventory
 	count(res) == 0
@@ -151,7 +151,7 @@ review_same_host_with_sub = {"review": {
 	},
 }}
 
-test_same_host_with_sub_allowed if {
+test_same_host_with_sub_allowed {
 	r = review_same_host_with_sub
 	res = violation with input as r with data.inventory as inventory_exact
 	count(res) == 0
@@ -171,7 +171,7 @@ review_diff_host = {"review": {
 	},
 }}
 
-test_diff_host_allowed if {
+test_diff_host_allowed {
 	r = review_diff_host
 	res = violation with input as r with data.inventory as inventory_other
 	count(res) == 0
@@ -191,7 +191,7 @@ inventory_api = {"namespace": {"tenant-a": {"networking.k8s.io/v1": {"Ingress": 
 	"spec": {"rules": [{"host": "app.example.com", "http": {"paths": [{"path": "/api"}]}}]},
 }}}}}}
 
-test_diff_host_same_path_allowed if {
+test_diff_host_same_path_allowed {
 	r = review_diff_host_same_path
 	res = violation with input as r with data.inventory as inventory_api
 	count(res) == 0

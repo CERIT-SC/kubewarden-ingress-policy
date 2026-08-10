@@ -3,17 +3,18 @@
 
 package policy
 
-identical(obj, review) {
+# Helper: Check if two objects are the same (same namespace and name)
+identical(obj, review) := true {
 	obj.metadata.namespace == review.object.metadata.namespace
 	obj.metadata.name == review.object.metadata.name
 }
 
 # Host conflict: exact match or wildcard overlap
-host_conflict(host1, host2) {
+host_conflict(host1, host2) := true {
 	host1 == host2
 }
 
-host_conflict(host1, host2) {
+host_conflict(host1, host2) := true {
 	startswith(host1, "*.")
 	not startswith(host2, "*.")
 	wildcard_domain := trim_prefix(host1, "*.")
@@ -23,7 +24,7 @@ host_conflict(host1, host2) {
 	count(parts) == count(wc_parts) + 1
 }
 
-host_conflict(host1, host2) {
+host_conflict(host1, host2) := true {
 	startswith(host2, "*.")
 	not startswith(host1, "*.")
 	wildcard_domain := trim_prefix(host2, "*.")
