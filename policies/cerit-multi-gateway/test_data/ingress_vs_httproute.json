@@ -1,0 +1,48 @@
+{
+  "uid": "test-ingress-vs-httproute",
+  "kind": {
+    "group": "networking.k8s.io",
+    "kind": "Ingress",
+    "version": "v1"
+  },
+  "resource": {
+    "group": "networking.k8s.io",
+    "version": "v1",
+    "resource": "ingresses"
+  },
+  "name": "ingress-vs-hr",
+  "operation": "CREATE",
+  "userInfo": {
+    "username": "test-user",
+    "groups": ["system:masters", "system:authenticated"]
+  },
+  "object": {
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "Ingress",
+    "metadata": {
+      "name": "ingress-vs-hr",
+      "namespace": "default"
+    },
+    "spec": {
+      "rules": [
+        {
+          "host": "hr-host.example.com",
+          "http": {
+            "paths": [
+              {
+                "pathType": "Prefix",
+                "path": "/",
+                "backend": {
+                  "service": {
+                    "name": "service1",
+                    "port": {"number": 80}
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

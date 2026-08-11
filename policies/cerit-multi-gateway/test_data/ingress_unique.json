@@ -1,0 +1,48 @@
+{
+  "uid": "test-unique-ingress",
+  "kind": {
+    "group": "networking.k8s.io",
+    "kind": "Ingress",
+    "version": "v1"
+  },
+  "resource": {
+    "group": "networking.k8s.io",
+    "version": "v1",
+    "resource": "ingresses"
+  },
+  "name": "unique-ingress",
+  "operation": "CREATE",
+  "userInfo": {
+    "username": "test-user",
+    "groups": ["system:masters", "system:authenticated"]
+  },
+  "object": {
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "Ingress",
+    "metadata": {
+      "name": "unique-ingress",
+      "namespace": "default"
+    },
+    "spec": {
+      "rules": [
+        {
+          "host": "unique.example.com",
+          "http": {
+            "paths": [
+              {
+                "pathType": "Prefix",
+                "path": "/",
+                "backend": {
+                  "service": {
+                    "name": "service1",
+                    "port": {"number": 80}
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

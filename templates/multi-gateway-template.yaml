@@ -1,0 +1,28 @@
+apiVersion: policies.kubewarden.io/v1
+kind: ClusterAdmissionPolicy
+metadata:
+  name: cerit-multi-gateway
+spec:
+  policyServer: default
+  module: registry://registry.example.com/namespace/multi-gateway-host:latest
+  contextAwareResources:
+    - apiVersion: "networking.k8s.io/v1"
+      kind: "Ingress"
+    - apiVersion: "gateway.networking.k8s.io/v1"
+      kind: "Gateway"
+    - apiVersion: "gateway.networking.k8s.io/v1"
+      kind: "HTTPRoute"
+  rules:
+    - apiGroups: ["networking.k8s.io"]
+      apiVersions: ["v1"]
+      resources: ["ingresses"]
+      operations: ["CREATE", "UPDATE"]
+    - apiGroups: ["gateway.networking.k8s.io"]
+      apiVersions: ["v1"]
+      resources: ["gateways"]
+      operations: ["CREATE", "UPDATE"]
+    - apiGroups: ["gateway.networking.k8s.io"]
+      apiVersions: ["v1"]
+      resources: ["httproutes"]
+      operations: ["CREATE", "UPDATE"]
+  mutating: false

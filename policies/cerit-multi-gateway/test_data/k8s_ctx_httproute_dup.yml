@@ -1,0 +1,76 @@
+- type: Exchange
+  request: |
+    !KubernetesListResourceAll
+    api_version: networking.k8s.io/v1
+    kind: Ingress
+    label_selector: null
+    field_selector: null
+  response:
+    type: Success
+    payload: |
+      {
+        "metadata": {"resourceVersion":"450657254"},
+        "items": []
+      }
+---
+- type: Exchange
+  request: |
+    !KubernetesListResourceAll
+    api_version: gateway.networking.k8s.io/v1
+    kind: Gateway
+    label_selector: null
+    field_selector: null
+  response:
+    type: Success
+    payload: |
+      {
+        "metadata": {"resourceVersion":"450657254"},
+        "items": []
+      }
+---
+- type: Exchange
+  request: |
+    !KubernetesListResourceAll
+    api_version: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    label_selector: null
+    field_selector: null
+  response:
+    type: Success
+    payload: |
+      {
+        "metadata": {"resourceVersion":"450657254"},
+        "items":[
+          {
+            "metadata": {
+              "creationTimestamp": "2021-07-23T21:16:28Z",
+              "generation": 2,
+              "name": "existing-httproute",
+              "namespace": "tenant-a",
+              "resourceVersion": "126783215",
+              "uid": "25e07786-fe09-49ba-a0f4-3008f3517120"
+            },
+            "spec": {
+              "hostnames": ["hr-host.example.com"],
+              "rules": [
+                {
+                  "matches": [
+                    {
+                      "path": {
+                        "type": "PathPrefix",
+                        "value": "/"
+                      }
+                    }
+                  ],
+                  "backendRefs": [
+                    {
+                      "name": "service1",
+                      "port": 80
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }

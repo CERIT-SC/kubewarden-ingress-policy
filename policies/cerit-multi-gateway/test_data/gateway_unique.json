@@ -1,0 +1,38 @@
+{
+  "uid": "test-unique-gateway",
+  "kind": {
+    "group": "gateway.networking.k8s.io",
+    "kind": "Gateway",
+    "version": "v1"
+  },
+  "resource": {
+    "group": "gateway.networking.k8s.io",
+    "version": "v1",
+    "resource": "gateways"
+  },
+  "name": "unique-gateway",
+  "operation": "CREATE",
+  "userInfo": {
+    "username": "test-user",
+    "groups": ["system:masters", "system:authenticated"]
+  },
+  "object": {
+    "apiVersion": "gateway.networking.k8s.io/v1",
+    "kind": "Gateway",
+    "metadata": {
+      "name": "unique-gateway",
+      "namespace": "default"
+    },
+    "spec": {
+      "gatewayClassName": "nginx",
+      "listeners": [
+        {
+          "name": "http",
+          "port": 80,
+          "protocol": "HTTP",
+          "hostname": "unique.example.com"
+        }
+      ]
+    }
+  }
+}

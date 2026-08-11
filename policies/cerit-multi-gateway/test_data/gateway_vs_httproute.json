@@ -1,0 +1,38 @@
+{
+  "uid": "test-gateway-vs-httproute",
+  "kind": {
+    "group": "gateway.networking.k8s.io",
+    "kind": "Gateway",
+    "version": "v1"
+  },
+  "resource": {
+    "group": "gateway.networking.k8s.io",
+    "version": "v1",
+    "resource": "gateways"
+  },
+  "name": "gw-vs-hr",
+  "operation": "CREATE",
+  "userInfo": {
+    "username": "test-user",
+    "groups": ["system:masters", "system:authenticated"]
+  },
+  "object": {
+    "apiVersion": "gateway.networking.k8s.io/v1",
+    "kind": "Gateway",
+    "metadata": {
+      "name": "gw-vs-hr",
+      "namespace": "default"
+    },
+    "spec": {
+      "gatewayClassName": "nginx",
+      "listeners": [
+        {
+          "name": "http",
+          "port": 80,
+          "protocol": "HTTP",
+          "hostname": "hr-host.example.com"
+        }
+      ]
+    }
+  }
+}
