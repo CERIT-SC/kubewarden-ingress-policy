@@ -11,8 +11,8 @@ PASS=0; FAIL=0
 apply_resource() {               # $1=kind $2=ns $3=host $4=path (path="-" for Gateway)
   local kind=$1 ns=$2 host=$3 path=$4
   case "$kind" in
-    ing) TEST_HOST="$host" TEST_PATH="$path" envsubst < "$INGRESS_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
-    gw)  TEST_HOST="$host" envsubst < "$GATEWAY_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
+    ing) TEST_HOST="$host" TEST_PATH="$path" envsubst <  "$INGRESS_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
+    gw)  TEST_HOST="$host"                   envsubst <  "$GATEWAY_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
     hr)  TEST_HOST="$host" TEST_PATH="$path" envsubst < "$HTTROUTE_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
   esac
 }
@@ -20,8 +20,8 @@ apply_resource() {               # $1=kind $2=ns $3=host $4=path (path="-" for G
 delete_resource() {              # $1=kind $2=ns
   local kind=$1 ns=$2
   case "$kind" in
-    ing) kubectl -n "$ns" delete ingress test --ignore-not-found >/dev/null 2>&1 ;;
-    gw)  kubectl -n "$ns" delete gateway test --ignore-not-found >/dev/null 2>&1 ;;
+    ing) kubectl -n "$ns" delete   ingress test --ignore-not-found >/dev/null 2>&1 ;;
+    gw)  kubectl -n "$ns" delete   gateway test --ignore-not-found >/dev/null 2>&1 ;;
     hr)  kubectl -n "$ns" delete httproute test --ignore-not-found >/dev/null 2>&1 ;;
   esac
 }
@@ -50,7 +50,7 @@ run_test() {
   apply_resource "$kind_b" "$NS_B" "$host_b" "$path_b"
   local rc=$?
 
-  if { [ "$expect" = deny ] && [ $rc -ne 0 ]; } || \
+  if { [ "$expect" =  deny ] && [ $rc -ne 0 ]; } || \
      { [ "$expect" = allow ] && [ $rc -eq 0 ]; }; then
     printf "\033[32mPASS\033[0m %s\n" "$name"
     PASS=$((PASS+1))
@@ -65,20 +65,20 @@ run_test() {
 # Format: name host_a path_a host_b path_b expect
 declare -a SCENARIOS=(
   # Reject cases
-  "same-host            app.example.com       /         app.example.com    /     deny"
-  "wildcard-same          *.example.com       /           *.example.com    /     deny"
-  "wildcard-overlap       *.example.com       /         app.example.com    /     deny"
-  "wildcard-overlap-2   app.example.com       /           *.example.com    /     deny"
-  "wildcard-sub       *.foo.example.com       /     app.foo.example.com    /     deny"
-  "wildcard-sub-2       app.foo.example.com   /       *.foo.example.com    /     deny"
+  "same-host                app.example.com   /          app.example.com   /      deny"
+  "wildcard-same              *.example.com   /            *.example.com   /      deny"
+  "wildcard-overlap           *.example.com   /          app.example.com   /      deny"
+  "wildcard-overlap-2       app.example.com   /            *.example.com   /      deny"
+  "wildcard-sub           *.foo.example.com   /      app.foo.example.com   /      deny"
+  "wildcard-sub-2       app.foo.example.com   /        *.foo.example.com   /      deny"
   # Allow cases
-  "wildcard-host         *.example.com        /             example.com    /     allow"
-  "wildcard-host-2       example.com          /           *.example.com    /     allow"
-  "wildcard-diff         *.app.example.com    /     *.other.example.com    /     allow"
-  "same-host-diff-path  app.example.com       /a        app.example.com    /b    allow"
-  "same-host-sub        app.example.com       /     sub.app.example.com    /     allow"
-  "diff-host            app.example.com       /       other.example.com    /     allow"
-  "diff-host-same-path  app.example.com       /api    other.example.com    /api  allow"
+  "wildcard-host              *.example.com   /              example.com   /      allow"
+  "wildcard-host-2              example.com   /            *.example.com   /      allow"
+  "wildcard-diff          *.app.example.com   /      *.other.example.com   /      allow"
+  "same-host-diff-path      app.example.com   /a         app.example.com   /b     allow"
+  "same-host-sub            app.example.com   /      sub.app.example.com   /      allow"
+  "diff-host                app.example.com   /        other.example.com   /      allow"
+  "diff-host-same-path      app.example.com   /api     other.example.com   /api   allow"
 )
 
 # Resource kinds to test: "kind_name:display_name:has_path"
@@ -114,7 +114,7 @@ for combo_a in "${KINDS[@]}"; do
       [[ "$has_path_b" == "no" ]] && actual_path_b="-"
 
       run_test "${kind_a}-${kind_b}-${name}" "$kind_a" "$host_a" "$actual_path_a" \
-               "$kind_b" "$host_b" "$actual_path_b" "$expect"
+                "$kind_b" "$host_b" "$actual_path_b" "$expect"
     done
 
     echo
