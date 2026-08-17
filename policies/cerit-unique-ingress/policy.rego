@@ -1,20 +1,23 @@
 # Taken from https://open-policy-agent.github.io/gatekeeper-library/website/validation/uniqueingresshost/
 # Extended to support wildcard hostnames and path-based conflict detection
+# Converted to Rego v1 syntax
 
 package policy
 
+import rego.v1
+
 # Helper: Check if two objects are the same (same namespace and name)
-identical(obj, review) := true {
+identical(obj, review) := true if {
 	obj.metadata.namespace == review.object.metadata.namespace
 	obj.metadata.name == review.object.metadata.name
 }
 
 # Host conflict: exact match or wildcard overlap
-host_conflict(host1, host2) := true {
+host_conflict(host1, host2) := true if {
 	host1 == host2
 }
 
-host_conflict(host1, host2) := true {
+host_conflict(host1, host2) := true if {
 	startswith(host1, "*.")
 	not startswith(host2, "*.")
 	wildcard_domain := trim_prefix(host1, "*.")
@@ -24,7 +27,7 @@ host_conflict(host1, host2) := true {
 	count(parts) == count(wc_parts) + 1
 }
 
-host_conflict(host1, host2) := true {
+host_conflict(host1, host2) := true if {
 	startswith(host2, "*.")
 	not startswith(host1, "*.")
 	wildcard_domain := trim_prefix(host2, "*.")
@@ -34,7 +37,8 @@ host_conflict(host1, host2) := true {
 	count(parts) == count(wc_parts) + 1
 }
 
-violation[{"msg": msg}] {
+# Violation rule - uses 'contains' for partial set rules in v1
+violation contains {"msg": msg} if {
 	input.review.kind.kind == "Ingress"
 	regex.match("^(extensions|networking.k8s.io)$", input.review.kind.group)
 	host := input.review.object.spec.rules[_].host
