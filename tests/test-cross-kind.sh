@@ -45,7 +45,7 @@ run_test() {
     printf "\033[31mFAIL\033[0m %s: fail also for ns A (expected OK)\n" "$name"
     FAIL=$((FAIL+1)); return
   fi
-  sleep 1
+  sleep 0.3
 
   apply_resource "$kind_b" "$NS_B" "$host_b" "$path_b"
   local rc=$?
@@ -68,12 +68,13 @@ declare -a SCENARIOS=(
   "same-host                app.example.com   /          app.example.com   /      deny"
   "wildcard-same              *.example.com   /            *.example.com   /      deny"
   "wildcard-overlap           *.example.com   /          app.example.com   /      deny"
-  "wildcard-overlap-2       app.example.com   /            *.example.com   /      deny"
+  "wildcard-overlap-r       app.example.com   /            *.example.com   /      deny"
+  "wildcard-overlap-2   sub.app.example.com   /            *.example.com   /      deny"
   "wildcard-sub           *.foo.example.com   /      app.foo.example.com   /      deny"
-  "wildcard-sub-2       app.foo.example.com   /        *.foo.example.com   /      deny"
+  "wildcard-sub-r       app.foo.example.com   /        *.foo.example.com   /      deny"
   # Allow cases
   "wildcard-host              *.example.com   /              example.com   /      allow"
-  "wildcard-host-2              example.com   /            *.example.com   /      allow"
+  "wildcard-host-r              example.com   /            *.example.com   /      allow"
   "wildcard-diff          *.app.example.com   /      *.other.example.com   /      allow"
   "same-host-diff-path      app.example.com   /a         app.example.com   /b     allow"
   "same-host-sub            app.example.com   /      sub.app.example.com   /      allow"

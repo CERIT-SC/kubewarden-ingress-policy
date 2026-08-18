@@ -24,7 +24,7 @@ run_test() {
     printf "\033[31mFAIL\033[0m $name: fail also for ns A (expected OK)\n"
     FAIL=$((FAIL+1)); return
   fi
-  sleep 1
+  sleep 0.3
   apply_ing "$NS_B" "$host_b" "$path_b"
   local rc=$?
 
@@ -46,13 +46,14 @@ kubectl get ns "$NS_B" >/dev/null 2>&1 || kubectl create ns "$NS_B" >/dev/null
 run_test "same-host"            app.example.com       /         app.example.com    /     deny
 run_test "wildcard-same"         '*.example.com'      /          '*.example.com'   /     deny
 run_test "wildcard-overlap"      '*.example.com'      /         app.example.com    /     deny
-run_test "wildcard-overlap-2"   app.example.com       /          '*.example.com'   /     deny
+run_test "wildcard-overlap-r"   app.example.com       /          '*.example.com'   /     deny
+run_test "wildcard-overlap-2" sub.app.example.com       /          '*.example.com'   /     deny
 run_test "wildcard-sub"      '*.foo.example.com'      /     app.foo.example.com    /     deny
-run_test "wildcard-sub-2"   app.foo.example.com       /      '*.foo.example.com'   /     deny
+run_test "wildcard-sub-r"   app.foo.example.com       /      '*.foo.example.com'   /     deny
 
 # --- allow cases ---
 run_test "wildcard-host"         '*.example.com'      /            'example.com'   /     allow
-run_test "wildcard-host-2"         'example.com'      /          '*.example.com'   /     allow
+run_test "wildcard-host-r"         'example.com'      /          '*.example.com'   /     allow
 run_test "wildcard-diff"     '*.app.example.com'      /    '*.other.example.com'   /     allow
 run_test "same-host-diff-path"  app.example.com       /a        app.example.com    /b    allow
 run_test "same-host-sub"        app.example.com       /     sub.app.example.com    /     allow
