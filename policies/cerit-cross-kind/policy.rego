@@ -17,12 +17,12 @@ host_conflict(host1, host2) := true if {
 	startswith(host1, "*.")
 	not startswith(host2, "*.")
 	endswith(host2, trim_prefix(host1, "*."))
-	count(split(host2, ".")) == count(split(trim_prefix(host1, "*."), ".")) + 1
+	count(split(host2, ".")) > count(split(trim_prefix(host1, "*."), "."))
 } else := true if {
 	startswith(host2, "*.")
 	not startswith(host1, "*.")
 	endswith(host1, trim_prefix(host2, "*."))
-	count(split(host1, ".")) == count(split(trim_prefix(host2, "*."), ".")) + 1
+	count(split(host1, ".")) > count(split(trim_prefix(host2, "*."), "."))
 } else := false
 
 # =============================================================================

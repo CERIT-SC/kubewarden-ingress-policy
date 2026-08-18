@@ -56,6 +56,23 @@ inventory_httproute_diff_path := {"namespace": {"tenant-a": {"gateway.networking
 	"spec": {"hostnames": ["app.example.com"], "rules": [{"matches": [{"path": {"value": "/api"}}]}]},
 }}}}}}
 
+# Multi-level subdomain input (for testing wildcard overlap at any depth)
+review_ingress_multi_sub := {"review": {
+	"kind": {"group": "networking.k8s.io", "version": "v1", "kind": "Ingress"},
+	"object": {
+		"metadata": {"namespace": "default", "name": "test"},
+		"spec": {"rules": [{"host": "sub.app.example.com", "http": {"paths": [{"path": "/"}]}}]},
+	},
+}}
+
+review_httproute_multi_sub := {"review": {
+	"kind": {"group": "gateway.networking.k8s.io", "version": "v1", "kind": "HTTPRoute"},
+	"object": {
+		"metadata": {"namespace": "default", "name": "test"},
+		"spec": {"hostnames": ["sub.app.example.com"], "rules": [{"matches": [{"path": {"value": "/"}}]}]},
+	},
+}}
+
 # =============================================================================
 # INPUTS
 # =============================================================================
@@ -164,6 +181,32 @@ test_ingress_subdomain_vs_wildcard_rejected if {
 test_ingress_wildcard_vs_base_allowed if {
 	res := violation with input as review_ingress_wildcard with data.inventory as inventory_base
 	count(res) == 0
+}
+
+# REJECT: multi-level subdomain vs wildcard (deeper overlap)
+test_ingress_multi_sub_vs_wildcard_rejected if {
+	res := violation with input as review_ingress_multi_sub with data.inventory as inventory_ingress_wildcard
+	count(res) == 1
+}
+
+test_ingress_vs_gateway_multi_sub_rejected if {
+	res := violation with input as review_ingress_multi_sub with data.inventory as inventory_gateway_wildcard
+	count(res) == 1
+}
+
+test_ingress_vs_httproute_multi_sub_rejected if {
+	res := violation with input as review_ingress_multi_sub with data.inventory as inventory_httproute_wildcard
+	count(res) == 1
+}
+
+test_httproute_multi_sub_vs_wildcard_rejected if {
+	res := violation with input as review_httproute_multi_sub with data.inventory as inventory_httproute_wildcard
+	count(res) == 1
+}
+
+test_httproute_multi_sub_vs_gateway_rejected if {
+	res := violation with input as review_httproute_multi_sub with data.inventory as inventory_gateway_wildcard
+	count(res) == 1
 }
 
 test_ingress_vs_gateway_rejected if {

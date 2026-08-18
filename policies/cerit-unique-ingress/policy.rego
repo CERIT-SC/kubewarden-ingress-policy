@@ -12,17 +12,17 @@ identical(obj, review) := true if {
 }
 
 # Host conflict: exact match or wildcard overlap
-# *.example.com matches app.example.com (same depth)
+# *.example.com matches app.example.com AND sub.app.example.com (any depth)
 host_conflict(host1, host2) := true if {
 	host1 == host2
 } else := true if {
 	startswith(host1, "*.")
 	endswith(host2, trim_prefix(host1, "*."))
-	count(split(host2, ".")) == count(split(trim_prefix(host1, "*."), ".")) + 1
+	count(split(host2, ".")) > count(split(trim_prefix(host1, "*."), "."))
 } else := true if {
 	startswith(host2, "*.")
 	endswith(host1, trim_prefix(host2, "*."))
-	count(split(host1, ".")) == count(split(trim_prefix(host2, "*."), ".")) + 1
+	count(split(host1, ".")) > count(split(trim_prefix(host2, "*."), "."))
 } else := false
 
 # Violation: detect conflicting ingress hosts on the same path
