@@ -1,0 +1,34 @@
+apiVersion: policies.kubewarden.io/v1
+kind: ClusterAdmissionPolicy
+metadata:
+  name: cerit-cross-traefik
+spec:
+  policyServer: default
+  module: registry://registry.example.com/namespace/cerit-cross-traefik:latest
+  contextAwareResources:
+    - apiVersion: "networking.k8s.io/v1"
+      kind: "Ingress"
+    - apiVersion: "gateway.networking.k8s.io/v1"
+      kind: "Gateway"
+    - apiVersion: "gateway.networking.k8s.io/v1"
+      kind: "HTTPRoute"
+    - apiVersion: "traefik.io/v1alpha1"
+      kind: "IngressRoute"
+  rules:
+    - apiGroups: ["networking.k8s.io"]
+      apiVersions: ["v1"]
+      resources: ["ingresses"]
+      operations: ["CREATE", "UPDATE"]
+    - apiGroups: ["gateway.networking.k8s.io"]
+      apiVersions: ["v1"]
+      resources: ["gateways"]
+      operations: ["CREATE", "UPDATE"]
+    - apiGroups: ["gateway.networking.k8s.io"]
+      apiVersions: ["v1"]
+      resources: ["httproutes"]
+      operations: ["CREATE", "UPDATE"]
+    - apiGroups: ["traefik.io"]
+      apiVersions: ["v1alpha1"]
+      resources: ["ingressroutes"]
+      operations: ["CREATE", "UPDATE"]
+  mutating: false
