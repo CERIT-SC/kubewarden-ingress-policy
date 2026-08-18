@@ -54,9 +54,9 @@ apply_resource() {               # $1=kind $2=ns $3=host $4=path $5=suffix
   local kind=$1 ns=$2 host=$3 path=$4 suffix=$5
   case "$kind" in
     ing) SUFFIX="$suffix" TEST_HOST="$host" TEST_PATH="$path" envsubst <  "$INGRESS_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
-    gw)  TEST_HOST="$host"                   envsubst <  "$GATEWAY_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
-    hr)  TEST_HOST="$host" TEST_PATH="$path" envsubst < "$HTTROUTE_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
-    ir)  local match="Host(\`$host\`)"; [ "$path" != "-" ] && [ "$path" != "/" ] && match="${match} && PathPrefix(\`$path\`)"; printf '%s\n' "apiVersion: traefik.io/v1alpha1" "kind: IngressRoute" "metadata:" "  name: test" "spec:" "  routes:" "  - match: $match" "    kind: Rule" "    services:" "    - name: test" "      port: 80" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
+    gw)  SUFFIX="$suffix" TEST_HOST="$host"                   envsubst <  "$GATEWAY_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
+    hr)  SUFFIX="$suffix" TEST_HOST="$host" TEST_PATH="$path" envsubst < "$HTTROUTE_TEMPLATE" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
+    ir)  local match="Host(\`$host\`)"; [ "$path" != "-" ] && [ "$path" != "/" ] && match="${match} && PathPrefix(\`$path\`)"; printf '%s\n' "apiVersion: traefik.io/v1alpha1" "kind: IngressRoute" "metadata:" "  name: test-$suffix" "spec:" "  routes:" "  - match: $match" "    kind: Rule" "    services:" "    - name: test" "      port: 80" | kubectl -n "$ns" apply -f - >/dev/null 2>&1 ;;
   esac
 }
 
@@ -113,6 +113,14 @@ run_test() {                     # $1=name $2=kind_a $3=host_a $4=path_a $5=kind
   fi
   clean_all "$kinds"
 }
+
+clean_exit() {
+  clean_all
+  exit 0
+}
+
+trap 'echo "SIGTERM received. Cleaning namespaces..."; clean_exit' TERM
+trap 'echo "SIGINT received. Cleaning namespaces..."; clean_exit' INT
 
 # Setup namespaces
 kubectl get ns "$NS_A" >/dev/null 2>&1 || kubectl create ns "$NS_A" >/dev/null

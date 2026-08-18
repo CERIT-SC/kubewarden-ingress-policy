@@ -8,7 +8,7 @@
 # apiVersion: traefik.io/v1alpha1
 # kind: IngressRoute
 # metadata:
-#   name: test
+#   name: test-$SUFFIX
 # spec:
 #   routes:
 #   - match: Host(`app.example.com`)
@@ -22,7 +22,7 @@
 # apiVersion: traefik.io/v1alpha1
 # kind: IngressRoute
 # metadata:
-#   name: test
+#   name: test-$SUFFIX
 # spec:
 #   routes:
 #   - match: Host(`app.example.com`) && PathPrefix(`/api`)
