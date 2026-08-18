@@ -75,6 +75,7 @@ declare -a SCENARIOS=(
   "wildcard-overlap           *.example.com   /          app.example.com   /      deny"
   "wildcard-overlap-r       app.example.com   /            *.example.com   /      deny"
   "wildcard-overlap-2   sub.app.example.com   /            *.example.com   /      deny"
+  "wildcard-overlap-2-r       *.example.com   /      sub.app.example.com   /      deny"
   "wildcard-sub           *.foo.example.com   /      app.foo.example.com   /      deny"
   "wildcard-sub-r       app.foo.example.com   /        *.foo.example.com   /      deny"
   # Allow cases
@@ -83,6 +84,7 @@ declare -a SCENARIOS=(
   "wildcard-diff          *.app.example.com   /      *.other.example.com   /      allow"
   "same-host-diff-path      app.example.com   /a         app.example.com   /b     allow"
   "same-host-sub            app.example.com   /      sub.app.example.com   /      allow"
+  "same-host-sub-r      sub.app.example.com   /          app.example.com   /      allow"
   "diff-host                app.example.com   /        other.example.com   /      allow"
   "diff-host-same-path      app.example.com   /api     other.example.com   /api   allow"
 )
