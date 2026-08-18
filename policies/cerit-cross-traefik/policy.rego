@@ -99,6 +99,136 @@ same_object(ns1, name1, review) if {
 }
 
 # =============================================================================
+# VIOLATION RULES - Standard kinds (Ingress, Gateway, HTTPRoute)
+# =============================================================================
+
+# Ingress vs Ingress
+violation contains {"msg": msg} if {
+	input_is_ingress
+	inp_host := input.review.object.spec.rules[_].host
+	inp_path := input.review.object.spec.rules[_].http.paths[_].path
+	other := data.inventory.namespace[ns][api_version].Ingress[name]
+	regex.match("^(extensions|networking.k8s.io)/.+$", api_version)
+	inv_host := other.spec.rules[_].host
+	inv_path := other.spec.rules[_].http.paths[_].path
+	host_conflict(inp_host, inv_host)
+	inp_path == inv_path
+	not same_object(ns, name, input.review)
+	msg := sprintf("ingress host <%v%v> conflicts with an existing ingress", [inp_host, inp_path])
+}
+
+# Ingress vs Gateway
+violation contains {"msg": msg} if {
+	input_is_ingress
+	inp_host := input.review.object.spec.rules[_].host
+	inp_path := input.review.object.spec.rules[_].http.paths[_].path
+	gw := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].Gateway[name]
+	inv_host := gw.spec.listeners[_].hostname
+	host_conflict(inp_host, inv_host)
+	not same_object(ns, name, input.review)
+	msg := sprintf("ingress host <%v%v> conflicts with a gateway listener hostname <%v>", [inp_host, inp_path, inv_host])
+}
+
+# Ingress vs HTTPRoute
+violation contains {"msg": msg} if {
+	input_is_ingress
+	inp_host := input.review.object.spec.rules[_].host
+	inp_path := input.review.object.spec.rules[_].http.paths[_].path
+	hr := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].HTTPRoute[name]
+	inv_host := hr.spec.hostnames[_]
+	inv_rule := hr.spec.rules[_]
+	inv_match := inv_rule.matches[_]
+	inv_path := inv_match.path.value
+	host_conflict(inp_host, inv_host)
+	inp_path == inv_path
+	not same_object(ns, name, input.review)
+	msg := sprintf("ingress host <%v%v> conflicts with an httproute host <%v>", [inp_host, inp_path, inv_host])
+}
+
+# Gateway vs Ingress
+violation contains {"msg": msg} if {
+	input_is_gateway
+	inp_host := input.review.object.spec.listeners[_].hostname
+	other := data.inventory.namespace[ns][api_version].Ingress[name]
+	regex.match("^(extensions|networking.k8s.io)/.+$", api_version)
+	inv_host := other.spec.rules[_].host
+	host_conflict(inp_host, inv_host)
+	not same_object(ns, name, input.review)
+	msg := sprintf("gateway listener hostname <%v> conflicts with an existing ingress host <%v>", [inp_host, inv_host])
+}
+
+# Gateway vs Gateway
+violation contains {"msg": msg} if {
+	input_is_gateway
+	inp_host := input.review.object.spec.listeners[_].hostname
+	gw := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].Gateway[name]
+	inv_host := gw.spec.listeners[_].hostname
+	host_conflict(inp_host, inv_host)
+	not same_object(ns, name, input.review)
+	msg := sprintf("gateway listener hostname <%v> conflicts with an existing gateway listener hostname <%v>", [inp_host, inv_host])
+}
+
+# Gateway vs HTTPRoute
+violation contains {"msg": msg} if {
+	input_is_gateway
+	inp_host := input.review.object.spec.listeners[_].hostname
+	hr := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].HTTPRoute[name]
+	inv_host := hr.spec.hostnames[_]
+	host_conflict(inp_host, inv_host)
+	not same_object(ns, name, input.review)
+	msg := sprintf("gateway listener hostname <%v> conflicts with an existing httproute host <%v>", [inp_host, inv_host])
+}
+
+# HTTPRoute vs Ingress
+violation contains {"msg": msg} if {
+	input_is_httproute
+	inp_host := input.review.object.spec.hostnames[_]
+	inp_rule := input.review.object.spec.rules[_]
+	inp_match := inp_rule.matches[_]
+	inp_path := inp_match.path.value
+	other := data.inventory.namespace[ns][api_version].Ingress[name]
+	regex.match("^(extensions|networking.k8s.io)/.+$", api_version)
+	inv_host := other.spec.rules[_].host
+	inv_path := other.spec.rules[_].http.paths[_].path
+	host_conflict(inp_host, inv_host)
+	inp_path == inv_path
+	not same_object(ns, name, input.review)
+	msg := sprintf("httproute host <%v%v> conflicts with an existing ingress host <%v>", [inp_host, inp_path, inv_host])
+}
+
+# HTTPRoute vs Gateway
+violation contains {"msg": msg} if {
+	input_is_httproute
+	inp_host := input.review.object.spec.hostnames[_]
+	inp_rule := input.review.object.spec.rules[_]
+	inp_match := inp_rule.matches[_]
+	inp_path := inp_match.path.value
+	gw := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].Gateway[name]
+	inv_host := gw.spec.listeners[_].hostname
+	host_conflict(inp_host, inv_host)
+	not same_object(ns, name, input.review)
+	msg := sprintf("httproute host <%v> conflicts with an existing gateway listener hostname <%v>", [inp_host, inv_host])
+}
+
+# HTTPRoute vs HTTPRoute
+violation contains {"msg": msg} if {
+	input_is_httproute
+	inp_host := input.review.object.spec.hostnames[_]
+	inp_rule := input.review.object.spec.rules[_]
+	inp_match := inp_rule.matches[_]
+	inp_path := inp_match.path.value
+	hr := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].HTTPRoute[name]
+	inv_host := hr.spec.hostnames[_]
+	inv_rule := hr.spec.rules[_]
+	inv_match := inv_rule.matches[_]
+	inv_path := inv_match.path.value
+	host_conflict(inp_host, inv_host)
+	inp_path == inv_path
+	not same_object(ns, name, input.review)
+	msg := sprintf("httproute host <%v%v> conflicts with an existing httproute host <%v>", [inp_host, inp_path, inv_host])
+}
+
+# =============================================================================
 # VIOLATION RULES - IngressRoute as input
 # =============================================================================
 
