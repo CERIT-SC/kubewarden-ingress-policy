@@ -1,0 +1,45 @@
+rules:
+  - apiGroups: ["networking.k8s.io"]
+    apiVersions: ["v1"]
+    resources: ["ingresses"]
+    operations: ["CREATE", "UPDATE"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    apiVersions: ["v1"]
+    resources: ["gateways"]
+    operations: ["CREATE", "UPDATE"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    apiVersions: ["v1"]
+    resources: ["httproutes"]
+    operations: ["CREATE", "UPDATE"]
+  - apiGroups: ["traefik.io"]
+    apiVersions: ["v1alpha1"]
+    resources: ["ingressroutes"]
+    operations: ["CREATE", "UPDATE"]
+mutating: false
+contextAware: true
+contextAwareResources:
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+  - apiVersion: traefik.io/v1alpha1
+    kind: IngressRoute
+executionMode: gatekeeper
+backgroundAudit: true
+annotations:
+  io.artifacthub.displayName: Multi-Gateway Unique Host
+  io.artifacthub.resources: Ingress, Gateway, HTTPRoute, IngressRoute
+  io.artifacthub.keywords: ingress, gateway, httproute, kubewarden
+  io.kubewarden.policy.ociUrl: ghcr.io/kubewarden/policies/multi-gateway-host
+  io.kubewarden.policy.title: cerit-cross-traefik
+  io.kubewarden.policy.version: 1.0.0
+  io.kubewarden.policy.description: Requires all Ingress, Gateway, and HTTPRoute host rules to be unique across resource types
+  io.kubewarden.policy.author: Kubewarden developers <cncf-kubewarden-maintainers@lists.cncf.io>
+  io.kubewarden.policy.url: https://github.com/kubewarden/policies
+  io.kubewarden.policy.source: https://github.com/kubewarden/policies
+  io.kubewarden.policy.license: Apache-2.0
+  io.kubewarden.policy.severity: medium
+  io.kubewarden.policy.category: Resource validation
+  com.github.release.tag: cerit-cross-traefik/v1.0.0
