@@ -8,8 +8,8 @@ on:
     branches: [main]
 
 env:
-  POLICY_NAME: "cerit-cross-traefik"
-  POLICY_PATH: "policies/cerit-cross-traefik"
+  POLICY_NAME: cerit-cross-traefik
+  POLICY_PATH: policies/${{ env.POLICY_NAME }}
   IMAGE_NAME: registry://${{ secrets.REGISTRY_URL }}/${{ env.POLICY_NAME }}
 
 jobs:
