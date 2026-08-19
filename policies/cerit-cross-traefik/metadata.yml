@@ -29,16 +29,16 @@ contextAwareResources:
 executionMode: gatekeeper
 backgroundAudit: true
 annotations:
-  io.artifacthub.displayName: Multi-Gateway Unique Host
+  io.artifacthub.displayName: CERIT-SC Cross Traefik
   io.artifacthub.resources: Ingress, Gateway, HTTPRoute, IngressRoute
-  io.artifacthub.keywords: ingress, gateway, httproute, kubewarden
-  io.kubewarden.policy.ociUrl: ghcr.io/kubewarden/policies/multi-gateway-host
+  io.artifacthub.keywords: ingress, gateway, httproute, ingressroute, kubewarden
+#  io.kubewarden.policy.ociUrl:
   io.kubewarden.policy.title: cerit-cross-traefik
   io.kubewarden.policy.version: 1.0.0
-  io.kubewarden.policy.description: Requires all Ingress, Gateway, and HTTPRoute host rules to be unique across resource types
+  io.kubewarden.policy.description: Requires all Ingress, Gateway, HTTPRoute and IngressRoute host and path rules to be unique across resource types
   io.kubewarden.policy.author: Kubewarden developers <cncf-kubewarden-maintainers@lists.cncf.io>
-  io.kubewarden.policy.url: https://github.com/kubewarden/policies
-  io.kubewarden.policy.source: https://github.com/kubewarden/policies
+  io.kubewarden.policy.url: https://github.com/CERIT-SC/kubewarden-ingress-policy
+  io.kubewarden.policy.source: https://github.com/CERIT-SC/kubewarden-ingress-policy
   io.kubewarden.policy.license: Apache-2.0
   io.kubewarden.policy.severity: medium
   io.kubewarden.policy.category: Resource validation
