@@ -9,8 +9,8 @@ on:
 
 env:
   POLICY_NAME: cerit-cross-traefik
-  POLICY_PATH: policies/${{ env.POLICY_NAME }}
-  IMAGE_NAME: registry://${{ secrets.REGISTRY_URL }}/${{ env.POLICY_NAME }}
+  POLICY_PATH: policies/cerit-cross-traefik
+  IMAGE_NAME: registry://${{ secrets.REGISTRY_URL }}/cerit-cross-traefik
 
 jobs:
   build-and-push:
