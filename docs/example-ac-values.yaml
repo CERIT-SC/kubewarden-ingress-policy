@@ -1,0 +1,51 @@
+
+# Part of the default `admission-controller` `values.yaml` file enhanced
+# by granting permissions also for other resources:
+#
+# - Ingresses (default)
+# - Gateways
+# - HttpRoutes
+# - IngressRoutes
+#
+# - SubjectAccessReview (default)
+
+policyServer:
+  permissions:
+    - apiGroup: ""
+      resources:
+        - namespaces
+        - pods
+        - services
+    - apiGroup: "networking.k8s.io"
+      resources:
+        - ingresses
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroup: "gateway.networking.k8s.io"
+      resources:
+        - gateways
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroup: "gateway.networking.k8s.io"
+      resources:
+        - httproutes
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroup: "traefik.io"
+      resources:
+        - ingressroutes
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroup: "authorization.k8s.io"
+      resources:
+        - "subjectaccessreviews"
+      verbs:
+        - create
