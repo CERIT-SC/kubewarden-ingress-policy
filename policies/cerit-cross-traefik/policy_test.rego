@@ -341,3 +341,171 @@ test_httproute_vs_traefik_diff_path_allowed if {
 	res := violation with input as review_httproute_diff_path with data.inventory as diff
 	count(res) == 0
 }
+
+# =============================================================================
+# SAME-NAMESPACE TEST CASES - Conflicts within same namespace are ALLOWED
+# =============================================================================
+
+# Same namespace inputs (all use tenant-a namespace)
+review_ingress_same_ns := {"review": {
+	"kind": {"group": "networking.k8s.io", "version": "v1", "kind": "Ingress"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"rules": [{"host": "app.example.com", "http": {"paths": [{"path": "/"}]}}]},
+	},
+}}
+
+review_ingress_wildcard_same_ns := {"review": {
+	"kind": {"group": "networking.k8s.io", "version": "v1", "kind": "Ingress"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"rules": [{"host": "*.example.com", "http": {"paths": [{"path": "/"}]}}]},
+	},
+}}
+
+review_gateway_same_ns := {"review": {
+	"kind": {"group": "gateway.networking.k8s.io", "version": "v1", "kind": "Gateway"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"listeners": [{"hostname": "app.example.com"}]},
+	},
+}}
+
+review_gateway_wildcard_same_ns := {"review": {
+	"kind": {"group": "gateway.networking.k8s.io", "version": "v1", "kind": "Gateway"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"listeners": [{"hostname": "*.example.com"}]},
+	},
+}}
+
+review_httproute_same_ns := {"review": {
+	"kind": {"group": "gateway.networking.k8s.io", "version": "v1", "kind": "HTTPRoute"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"hostnames": ["app.example.com"], "rules": [{"matches": [{"path": {"value": "/"}}]}]},
+	},
+}}
+
+review_httproute_wildcard_same_ns := {"review": {
+	"kind": {"group": "gateway.networking.k8s.io", "version": "v1", "kind": "HTTPRoute"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"hostnames": ["*.example.com"], "rules": [{"matches": [{"path": {"value": "/"}}]}]},
+	},
+}}
+
+review_traefik_simple_same_ns := {"review": {
+	"kind": {"group": "traefik.io", "version": "v1alpha1", "kind": "IngressRoute"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"routes": [{"match": "Host(`app.example.com`)"}]},
+	},
+}}
+
+review_traefik_wildcard_same_ns := {"review": {
+	"kind": {"group": "traefik.io", "version": "v1alpha1", "kind": "IngressRoute"},
+	"object": {
+		"metadata": {"namespace": "tenant-a", "name": "test-new"},
+		"spec": {"routes": [{"match": "Host(`*.example.com`)"}]},
+	},
+}}
+
+# Same namespace: Ingress vs Ingress (should be ALLOWED)
+test_ingress_same_ns_allowed if {
+	res := violation with input as review_ingress_same_ns with data.inventory as inventory_ingress
+	count(res) == 0
+}
+
+# Same namespace: Ingress wildcard vs Ingress (should be ALLOWED)
+test_ingress_wildcard_same_ns_allowed if {
+	res := violation with input as review_ingress_wildcard_same_ns with data.inventory as inventory_ingress
+	count(res) == 0
+}
+
+# Same namespace: Gateway vs Ingress (should be ALLOWED)
+test_gateway_same_ns_vs_ingress_allowed if {
+	res := violation with input as review_gateway_same_ns with data.inventory as inventory_ingress
+	count(res) == 0
+}
+
+# Same namespace: Gateway vs Gateway (should be ALLOWED)
+test_gateway_same_ns_allowed if {
+	res := violation with input as review_gateway_same_ns with data.inventory as inventory_gateway
+	count(res) == 0
+}
+
+# Same namespace: HTTPRoute vs Ingress (should be ALLOWED)
+test_httproute_same_ns_vs_ingress_allowed if {
+	res := violation with input as review_httproute_same_ns with data.inventory as inventory_ingress
+	count(res) == 0
+}
+
+# Same namespace: HTTPRoute vs Gateway (should be ALLOWED)
+test_httproute_same_ns_allowed if {
+	res := violation with input as review_httproute_same_ns with data.inventory as inventory_gateway
+	count(res) == 0
+}
+
+# Same namespace: IngressRoute vs Ingress (should be ALLOWED)
+test_traefik_same_ns_vs_ingress_allowed if {
+	res := violation with input as review_traefik_simple_same_ns with data.inventory as inventory_ingress
+	count(res) == 0
+}
+
+# Same namespace: IngressRoute vs Gateway (should be ALLOWED)
+test_traefik_same_ns_vs_gateway_allowed if {
+	res := violation with input as review_traefik_simple_same_ns with data.inventory as inventory_gateway
+	count(res) == 0
+}
+
+# Same namespace: IngressRoute vs HTTPRoute (should be ALLOWED)
+test_traefik_same_ns_vs_httproute_allowed if {
+	res := violation with input as review_traefik_simple_same_ns with data.inventory as inventory_httproute
+	count(res) == 0
+}
+
+# Same namespace: IngressRoute vs IngressRoute (should be ALLOWED)
+test_traefik_same_ns_allowed if {
+	res := violation with input as review_traefik_simple_same_ns with data.inventory as inventory_traefik
+	count(res) == 0
+}
+
+# Same namespace: Ingress vs IngressRoute (should be ALLOWED)
+test_ingress_same_ns_vs_traefik_allowed if {
+	res := violation with input as review_ingress_same_ns with data.inventory as inventory_traefik
+	count(res) == 0
+}
+
+# Same namespace: Gateway vs IngressRoute (should be ALLOWED)
+test_gateway_same_ns_vs_traefik_allowed if {
+	res := violation with input as review_gateway_same_ns with data.inventory as inventory_traefik
+	count(res) == 0
+}
+
+# Same namespace: HTTPRoute vs IngressRoute (should be ALLOWED)
+test_httproute_same_ns_vs_traefik_allowed if {
+	res := violation with input as review_httproute_same_ns with data.inventory as inventory_traefik
+	count(res) == 0
+}
+
+# Same namespace: Wildcard conflicts allowed too
+test_ingress_wildcard_same_ns_vs_wildcard_allowed if {
+	res := violation with input as review_ingress_wildcard_same_ns with data.inventory as inventory_ingress_wildcard
+	count(res) == 0
+}
+
+test_gateway_wildcard_same_ns_allowed if {
+	res := violation with input as review_gateway_wildcard_same_ns with data.inventory as inventory_gateway_wildcard
+	count(res) == 0
+}
+
+test_httproute_wildcard_same_ns_allowed if {
+	res := violation with input as review_httproute_wildcard_same_ns with data.inventory as inventory_httproute_wildcard
+	count(res) == 0
+}
+
+test_traefik_wildcard_same_ns_allowed if {
+	res := violation with input as review_traefik_wildcard_same_ns with data.inventory as inventory_traefik_wildcard
+	count(res) == 0
+}
