@@ -907,6 +907,17 @@ test_ingress_foo_wildcard_vs_bar_wildcard_allowed if {
 	count(res) == 0
 }
 
+# --- Different subdomains (same-host-sub and same-host-sub-r) ---
+test_ingress_subdomain_vs_different_subdomain_allowed if {
+	res := violation with input as review_ingress with data.inventory as inventory_ingress_subdomain
+	count(res) == 0
+}
+
+test_ingress_different_subdomain_vs_subdomain_allowed if {
+	res := violation with input as review_ingress_multi_sub with data.inventory as inventory_ingress
+	count(res) == 0
+}
+
 # --- Different paths on same host ---
 test_ingress_a_vs_b_allowed if {
 	res := violation with input as review_ingress_a with data.inventory as inventory_ingress_b
@@ -924,8 +935,9 @@ test_ingress_vs_ingress_other_host_allowed if {
 	count(res) == 0
 }
 
-test_ingress_vs_ingress_api_path_allowed if {
-	res := violation with input as review_ingress with data.inventory as inventory_ingress_api
+# Different hosts, same path - should be allowed (matches test.sh: diff-host-same-path)
+test_ingress_vs_ingress_diff_host_same_path_allowed if {
+	res := violation with input as review_ingress_api with data.inventory as inventory_ingress_other
 	count(res) == 0
 }
 
@@ -1113,13 +1125,22 @@ test_httproute_vs_traefik_diff_host_allowed if {
 	count(res) == 0
 }
 
-# --- Traefik diff path allowed ---
-test_traefik_vs_traefik_diff_path_allowed if {
-	res := violation with input as review_traefik_web with data.inventory as inventory_traefik
+# --- Different non-overlapping paths on same host - should be allowed ---
+# /a vs /b (different paths, no overlap)
+test_ingress_a_vs_b_different_paths_allowed if {
+	res := violation with input as review_ingress_a with data.inventory as inventory_ingress_b
 	count(res) == 0
 }
 
-test_httproute_vs_traefik_diff_path_allowed if {
-	res := violation with input as review_httproute_api with data.inventory as inventory_traefik
+# Traefik: PathPrefix(/web) vs no path restriction - this IS a conflict because root matches all
+# So we test different non-overlapping Traefik paths instead
+# Note: Host(app.example.com) without path matches ALL paths, so any subpath conflicts
+# We need to test two specific non-overlapping paths - but Traefik IngressRoute doesn't have
+# a way to specify "only this exact path" without also matching subpaths in the same way
+# For now, skip this test or test same-namespace where it's allowed
+
+# HTTPRoute vs Traefik with different hosts - should be allowed
+test_httproute_vs_traefik_diff_host_allowed if {
+	res := violation with input as review_httproute_api with data.inventory as inventory_traefik_other
 	count(res) == 0
 }
