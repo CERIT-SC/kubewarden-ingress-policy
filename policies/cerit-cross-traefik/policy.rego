@@ -82,14 +82,34 @@ host_conflict(host1, host2) := true if {
 } else := false
 
 # Path overlap detection
+# Treats "/" and "" as "all paths" (overlaps with everything)
+# Also detects prefix overlaps where /a overlaps with /a/b but NOT with /api
+# Handles trailing slashes by normalizing them
 path_overlap(p1, p2) := true if {
 	p1 == p2
 } else := true if {
+	p1 == "/"
+} else := true if {
 	p1 == ""
+} else := true if {
+	p2 == "/"
 } else := true if {
 	p2 == ""
 } else := true if {
-	startswith(p2, p1)
+	# Normalize: remove trailing slashes for comparison
+	norm_p1 := trim_suffix(p1, "/")
+	norm_p2 := trim_suffix(p2, "/")
+	norm_p1 == norm_p2
+} else := true if {
+	# Check if p1 is a prefix of p2 (with segment boundary)
+	norm_p1 := trim_suffix(p1, "/")
+	norm_p2 := trim_suffix(p2, "/")
+	startswith(norm_p2, concat("", [norm_p1, "/"]))
+} else := true if {
+	# Check if p2 is a prefix of p1 (with segment boundary) - reverse direction
+	norm_p1 := trim_suffix(p1, "/")
+	norm_p2 := trim_suffix(p2, "/")
+	startswith(norm_p1, concat("", [norm_p2, "/"]))
 } else := false
 
 # Same object check
@@ -117,7 +137,7 @@ violation contains {"msg": msg} if {
 	inv_host := other.spec.rules[_].host
 	inv_path := other.spec.rules[_].http.paths[_].path
 	host_conflict(inp_host, inv_host)
-	inp_path == inv_path
+	path_overlap(inp_path, inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingress host <%v%v> conflicts with an existing ingress", [inp_host, inp_path])
 }
@@ -130,6 +150,7 @@ violation contains {"msg": msg} if {
 	gw := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].Gateway[name]
 	inv_host := gw.spec.listeners[_].hostname
 	host_conflict(inp_host, inv_host)
+	path_overlap(inp_path, "")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingress host <%v%v> conflicts with a gateway listener hostname <%v>", [inp_host, inp_path, inv_host])
 }
@@ -145,7 +166,7 @@ violation contains {"msg": msg} if {
 	inv_match := inv_rule.matches[_]
 	inv_path := inv_match.path.value
 	host_conflict(inp_host, inv_host)
-	inp_path == inv_path
+	path_overlap(inp_path, inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingress host <%v%v> conflicts with an httproute host <%v>", [inp_host, inp_path, inv_host])
 }
@@ -157,7 +178,9 @@ violation contains {"msg": msg} if {
 	other := data.inventory.namespace[ns][api_version].Ingress[name]
 	regex.match("^(extensions|networking.k8s.io)/.+$", api_version)
 	inv_host := other.spec.rules[_].host
+	inv_path := other.spec.rules[_].http.paths[_].path
 	host_conflict(inp_host, inv_host)
+	path_overlap("", inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("gateway listener hostname <%v> conflicts with an existing ingress host <%v>", [inp_host, inv_host])
 }
@@ -179,7 +202,11 @@ violation contains {"msg": msg} if {
 	inp_host := input.review.object.spec.listeners[_].hostname
 	hr := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].HTTPRoute[name]
 	inv_host := hr.spec.hostnames[_]
+	inv_rule := hr.spec.rules[_]
+	inv_match := inv_rule.matches[_]
+	inv_path := inv_match.path.value
 	host_conflict(inp_host, inv_host)
+	path_overlap("", inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("gateway listener hostname <%v> conflicts with an existing httproute host <%v>", [inp_host, inv_host])
 }
@@ -196,7 +223,7 @@ violation contains {"msg": msg} if {
 	inv_host := other.spec.rules[_].host
 	inv_path := other.spec.rules[_].http.paths[_].path
 	host_conflict(inp_host, inv_host)
-	inp_path == inv_path
+	path_overlap(inp_path, inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("httproute host <%v%v> conflicts with an existing ingress host <%v>", [inp_host, inp_path, inv_host])
 }
@@ -211,6 +238,7 @@ violation contains {"msg": msg} if {
 	gw := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].Gateway[name]
 	inv_host := gw.spec.listeners[_].hostname
 	host_conflict(inp_host, inv_host)
+	path_overlap(inp_path, "")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("httproute host <%v> conflicts with an existing gateway listener hostname <%v>", [inp_host, inv_host])
 }
@@ -228,7 +256,7 @@ violation contains {"msg": msg} if {
 	inv_match := inv_rule.matches[_]
 	inv_path := inv_match.path.value
 	host_conflict(inp_host, inv_host)
-	inp_path == inv_path
+	path_overlap(inp_path, inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("httproute host <%v%v> conflicts with an existing httproute host <%v>", [inp_host, inp_path, inv_host])
 }
@@ -265,7 +293,7 @@ violation contains {"msg": msg} if {
 	inv_host := other.spec.rules[_].host
 	inv_path := other.spec.rules[_].http.paths[_].path
 	host_conflict(inp_host, inv_host)
-	path_overlap("", inv_path)
+	path_overlap("/", inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingressroute host <%v%v> conflicts with an existing ingress", [inp_host, ""])
 }
@@ -296,7 +324,7 @@ violation contains {"msg": msg} if {
 	gw := data.inventory.namespace[ns]["gateway.networking.k8s.io/v1"].Gateway[name]
 	inv_host := gw.spec.listeners[_].hostname
 	host_conflict(inp_host, inv_host)
-	path_overlap("", "")
+	path_overlap("/", "")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingressroute host <%v%v> conflicts with a gateway", [inp_host, ""])
 }
@@ -329,7 +357,7 @@ violation contains {"msg": msg} if {
 	inv_host := other.spec.hostnames[_]
 	inv_path := other.spec.rules[_].matches[_].path.value
 	host_conflict(inp_host, inv_host)
-	path_overlap("", inv_path)
+	path_overlap("/", inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingressroute host <%v%v> conflicts with an existing httproute", [inp_host, ""])
 }
@@ -368,7 +396,7 @@ violation contains {"msg": msg} if {
 	inv_path_matches := regex.find_all_string_submatch_n(traefik_path_pattern, inv_match, -1)
 	inv_path := inv_path_matches[_][1]
 	host_conflict(inp_host, inv_host)
-	path_overlap("", inv_path)
+	path_overlap("/", inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingressroute host <%v%v> conflicts with an existing ingressroute", [inp_host, ""])
 }
@@ -387,7 +415,7 @@ violation contains {"msg": msg} if {
 	inv_host := inv_matches[_][1]
 	not regex.match(traefik_path_pattern, inv_match)
 	host_conflict(inp_host, inv_host)
-	path_overlap(inp_path, "")
+	path_overlap(inp_path, "/")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingressroute host <%v%v> conflicts with an existing ingressroute", [inp_host, inp_path])
 }
@@ -405,7 +433,7 @@ violation contains {"msg": msg} if {
 	inv_host := inv_matches[_][1]
 	not regex.match(traefik_path_pattern, inv_match)
 	host_conflict(inp_host, inv_host)
-	path_overlap("", "")
+	path_overlap("/", "/")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingressroute host <%v%v> conflicts with an existing ingressroute", [inp_host, ""])
 }
@@ -443,7 +471,7 @@ violation contains {"msg": msg} if {
 	inv_host := inv_matches[_][1]
 	not regex.match(traefik_path_pattern, inv_match)
 	host_conflict(inp_host, inv_host)
-	path_overlap(inp_path, "")
+	path_overlap(inp_path, "/")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("ingress host <%v%v> conflicts with an existing ingressroute", [inp_host, inp_path])
 }
@@ -461,7 +489,7 @@ violation contains {"msg": msg} if {
 	inv_path_matches := regex.find_all_string_submatch_n(traefik_path_pattern, inv_match, -1)
 	inv_path := inv_path_matches[_][1]
 	host_conflict(inp_host, inv_host)
-	path_overlap(inp_path, inv_path)
+	path_overlap("", inv_path)
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("gateway host <%v%v> conflicts with an existing ingressroute", [inp_host, inp_path])
 }
@@ -477,7 +505,7 @@ violation contains {"msg": msg} if {
 	inv_host := inv_matches[_][1]
 	not regex.match(traefik_path_pattern, inv_match)
 	host_conflict(inp_host, inv_host)
-	path_overlap(inp_path, "")
+	path_overlap("", "/")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("gateway host <%v%v> conflicts with an existing ingressroute", [inp_host, inp_path])
 }
@@ -511,7 +539,7 @@ violation contains {"msg": msg} if {
 	inv_host := inv_matches[_][1]
 	not regex.match(traefik_path_pattern, inv_match)
 	host_conflict(inp_host, inv_host)
-	path_overlap(inp_path, "")
+	path_overlap(inp_path, "/")
 	not skip_same_namespace(ns, input.review)
 	msg := sprintf("httproute host <%v%v> conflicts with an existing ingressroute", [inp_host, inp_path])
 }
